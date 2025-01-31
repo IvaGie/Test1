@@ -2,6 +2,8 @@ import re
 import os
 import matplotlib.pyplot as plt
 from itertools import product
+import csv
+import pandas as pd
 
 # Funkce pro načítání afixových pravidel
 def load_affix_rules(affix_file):
@@ -176,6 +178,31 @@ def process_all_cat_files():
 
     plt.tight_layout()
     plt.show()
+
+    # Generování tabulky a export do CSV a XLSX
+    generate_table_and_export(length_stats)
+
+# Funkce pro generování tabulky a export do CSV a XLSX
+def generate_table_and_export(length_stats, filename_csv="slovnik_analyza.csv", filename_xlsx="slovnik_analyza.xlsx"):
+    # Vytvoření seznamu pro tabulku
+    table_data = []
+    for category, shortest, longest, avg_length, input_count, output_count in length_stats:
+        table_data.append([category, input_count, output_count, shortest, longest, round(avg_length, 2)])
+
+    # Sloupce tabulky
+    columns = ['Kategorie', 'Vstupní počet', 'Výstupní počet', 'Nejkratší slovo', 'Nejdelší slovo', 'Průměrná délka']
+
+    # Export do CSV
+    with open(filename_csv, mode='w', newline='', encoding='utf-8') as file:
+        writer = csv.writer(file)
+        writer.writerow(columns)
+        writer.writerows(table_data)
+    print(f"✅ Exportováno do: {filename_csv}")
+
+    # Export do XLSX
+    df = pd.DataFrame(table_data, columns=columns)
+    df.to_excel(filename_xlsx, index=False)
+    print(f"✅ Exportováno do: {filename_xlsx}")
 
 # Spuštění zpracování všech souborů pro analýzu délky slov
 process_all_cat_files()
