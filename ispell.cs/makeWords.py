@@ -1,5 +1,4 @@
 import re
-import os
 import matplotlib.pyplot as plt
 from itertools import product
 import csv
@@ -21,11 +20,11 @@ def load_affix_rules(affix_file):
             if rule_type == 'PFX':  # Předpony
                 if flag not in prefix_rules:
                     prefix_rules[flag] = []
-                prefix_rules[flag].append((strip_chars, add_chars))
+                prefix_rules[flag].append((strip_chars, add_chars, ' '.join(condition)))
             elif rule_type == 'SFX':  # Přípony
                 if flag not in suffix_rules:
                     suffix_rules[flag] = []
-                suffix_rules[flag].append((strip_chars, add_chars))
+                suffix_rules[flag].append((strip_chars, add_chars, ' '.join(condition)))
     return prefix_rules, suffix_rules
 
 # Funkce pro aplikaci přípon
@@ -33,7 +32,10 @@ def apply_suffix_rules(base_word, affix_flags, suffix_rules):
     generated_words = set()
     for flag in affix_flags:
         if flag in suffix_rules:
-            for strip_chars, add_chars in suffix_rules[flag]:
+            for strip_chars, add_chars, condition in suffix_rules[flag]:
+                # Zkontrolujeme, zda základní slovo odpovídá regulárnímu výrazu podmínky
+                if condition and not re.search(condition, base_word):
+                    continue  # Pokud podmínka není splněna, přejdeme na další pravidlo
                 if base_word.endswith(strip_chars):
                     new_word = base_word[:-len(strip_chars)] + add_chars
                     generated_words.add(new_word)
@@ -44,7 +46,10 @@ def apply_prefix_rules(base_word, affix_flags, prefix_rules):
     generated_words = set()
     for flag in affix_flags:
         if flag in prefix_rules:
-            for strip_chars, add_chars in prefix_rules[flag]:
+            for strip_chars, add_chars, condition in prefix_rules[flag]:
+                # Zkontrolujeme, zda základní slovo odpovídá regulárnímu výrazu podmínky
+                if condition and not re.search(condition, base_word):
+                    continue  # Pokud podmínka není splněna, přejdeme na další pravidlo
                 if base_word.startswith(strip_chars):
                     new_word = add_chars + base_word[len(strip_chars):]
                     generated_words.add(new_word)
